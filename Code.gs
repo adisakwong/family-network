@@ -129,7 +129,7 @@ function registerMember(data) {
       
       // Allow image to be viewed by anyone with the link
       file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-      imageUrl = file.getUrl();
+      imageUrl = 'https://drive.google.com/thumbnail?id=' + file.getId();
     }
 
     // Save to Google Sheet
