@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Family Network</title>
+
+    <!-- Include Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- SweetAlert2 for nice UI Alerts -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <header>
+            <h1>Family Network</h1>
+            <p>ระบบเครือข่ายครอบครัว</p>
+        </header>
+
+        <!-- ========================= -->
+        <!-- MAIN / LOGIN PAGE         -->
+        <!-- ========================= -->
+        <section id="login-page" class="page active">
+            <h2>เข้าสู่ระบบ (Login)</h2>
+            <div class="form-group">
+                <label for="login-id">รหัสบัตรประชาชน (13 หลัก)</label>
+                <input type="text" inputmode="numeric" id="login-id" maxlength="13" pattern="\d{13}"
+                    placeholder="กรอกรหัส 13 หลัก" required>
+            </div>
+            <button id="btn-login" class="btn primary">ตรวจสอบ / เข้าสู่ระบบ</button>
+        </section>
+
+        <!-- ========================= -->
+        <!-- REGISTER PAGE             -->
+        <!-- ========================= -->
+        <section id="register-page" class="page hidden">
+            <h2>ลงทะเบียน (Register)</h2>
+            <form id="register-form">
+                <div class="form-group">
+                    <label for="reg-id">รหัสบัตรประชาชน (13 หลัก)</label>
+                    <input type="text" id="reg-id" maxlength="13" pattern="\d{13}" readonly required>
+                </div>
+                <div class="form-group">
+                    <label for="reg-name">ชื่อ (Name)</label>
+                    <input type="text" id="reg-name" required placeholder="กรอกชื่อ">
+                </div>
+                <div class="form-group">
+                    <label for="reg-surname">นามสกุล (Surname)</label>
+                    <input type="text" id="reg-surname" required placeholder="กรอกนามสกุล">
+                </div>
+                <div class="form-group">
+                    <label for="reg-address">ที่อยู่ (Address)</label>
+                    <textarea id="reg-address" rows="3" required placeholder="กรอกที่อยู่ปัจจุบัน"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="reg-phone">เบอร์โทรศัพท์ (Phone)</label>
+                    <input type="tel" id="reg-phone" inputmode="numeric" required placeholder="กรอกเบอร์โทรศัพท์">
+                </div>
+                <div class="form-group">
+                    <label>ถ่ายภาพ/อัปโหลดรูป (Photo)</label>
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                        <button type="button" id="btn-open-camera" class="btn secondary small"
+                            style="flex:1; padding: 10px;">📷 ถ่ายด้วยกล้อง</button>
+                        <button type="button" id="btn-upload-image" class="btn secondary small"
+                            style="flex:1; padding: 10px;">📁 เลือกรูปภาพ</button>
+                    </div>
+                    <input type="file" id="reg-image" accept="image/*" style="display:none;">
+
+                    <div id="camera-container"
+                        style="display:none; padding:10px; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:8px; margin-bottom:10px;">
+                        <video id="camera-video" autoplay playsinline
+                            style="width:100%; max-height:250px; border-radius:8px; background-color:#000; object-fit:cover;"></video>
+                        <div style="display:flex; gap:10px; margin-top:10px;">
+                            <button type="button" id="btn-capture-photo" class="btn primary small"
+                                style="flex:1; padding:10px;">📸 กดถ่ายภาพ</button>
+                            <button type="button" id="btn-switch-camera" class="btn secondary small"
+                                style="flex:1; padding:10px;">🔄 สลับกล้อง</button>
+                        </div>
+                    </div>
+                    <canvas id="camera-canvas" style="display:none;"></canvas>
+
+                    <div class="preview-container">
+                        <img id="image-preview" src="" alt="Image Preview" style="display:none;">
+                    </div>
+                </div>
+                <div class="button-group">
+                    <button type="button" id="btn-cancel-reg" class="btn secondary">ยกเลิก</button>
+                    <button type="submit" id="btn-submit-reg" class="btn primary">บันทึกข้อมูล</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- ========================= -->
+        <!-- MEMBERS PAGE              -->
+        <!-- ========================= -->
+        <section id="members-page" class="page hidden">
+            <div class="members-header">
+                <h2>รายชื่อสมาชิกทั้งหมด</h2>
+                <button type="button" id="btn-logout" class="btn secondary small">ออกจากระบบ</button>
+            </div>
+            <div id="loading-members" style="text-align:center; padding: 20px; color: #666;">
+                <p>กำลังโหลดข้อมูลสมาชิก...</p>
+            </div>
+            <div id="members-list" class="members-grid">
+                <!-- Members will be dynamically loaded here -->
+            </div>
+        </section>
+    </div>
+
+    <!-- Configuration for API -->
+    <script>
+        // ใส่ URL Web App ของ Google Apps Script ของคุณที่นี่
+        //const GAS_WEB_APP_URL = 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL';
+        const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwfwsNUkC2kBwj-4PnMh6J3O_40l2K5jDhSj1aAoHaike5psfER7nbwDVKn5MRGZwkf/exec';
+    </script>
+
+    <!-- Include Javascript -->
+    <script src="script.js"></script>
+</body>
+
+</html>
