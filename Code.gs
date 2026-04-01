@@ -63,7 +63,7 @@ function getSheet() {
   if (!sheet) {
     sheet = ss.insertSheet(SHEET_NAME);
     // Add headers if created new
-    sheet.appendRow(['Person_id', 'Name', 'Surname', 'Address', 'Phone', 'Image_URL']);
+    sheet.appendRow(['Register_date', 'Person_id', 'Name', 'Surname', 'Address', 'Phone', 'Image_URL', 'Birthdate', 'Illness', 'Beneficiary', 'Related']);
   }
   return sheet;
 }
@@ -89,10 +89,16 @@ function checkMember(personId) {
     const sheet = getSheet();
     const data = sheet.getDataRange().getValues();
     
+    if (data.length <= 1) return { found: false };
+    
+    // Find column index for 'Person_id'
+    const headers = data[0];
+    const idPersonTarget = headers.indexOf('Person_id') > -1 ? headers.indexOf('Person_id') : 0;
+    
     // Start from row 1 (exclude header)
     for (let i = 1; i < data.length; i++) {
         // Enforce string comparison
-        if (String(data[i][0]).trim() === String(personId).trim()) {
+        if (String(data[i][idPersonTarget]).trim() === String(personId).trim()) {
             return { found: true };
         }
     }
@@ -135,12 +141,17 @@ function registerMember(data) {
     // Save to Google Sheet
     const sheet = getSheet();
     sheet.appendRow([
-      data.personId,
+      data.registerDate || '',
+      data.personId ? "'" + String(data.personId) : '',
       data.name,
       data.surname,
       data.address,
-      data.phone,
-      imageUrl
+      data.phone ? "'" + String(data.phone) : '',
+      imageUrl,
+      data.birthdate || '',
+      data.illness || '',
+      data.beneficiary || '',
+      data.related || ''
     ]);
 
     return { success: true };
@@ -164,19 +175,34 @@ function getAllMembers() {
     const headers = data[0];
     const members = [];
     
-    // Detect column indexes for safety
+    const idRegisterDate = headers.indexOf('Register_date') > -1 ? headers.indexOf('Register_date') : -1;
+    const idPerson = headers.indexOf('Person_id') > -1 ? headers.indexOf('Person_id') : 0;
     const idName = headers.indexOf('Name') > -1 ? headers.indexOf('Name') : 1;
     const idSurname = headers.indexOf('Surname') > -1 ? headers.indexOf('Surname') : 2;
+    const idAddress = headers.indexOf('Address') > -1 ? headers.indexOf('Address') : 3;
+    const idPhone = headers.indexOf('Phone') > -1 ? headers.indexOf('Phone') : 4;
     const idImage = headers.indexOf('Image_URL') > -1 ? headers.indexOf('Image_URL') : 5;
+    const idBirthdate = headers.indexOf('Birthdate') > -1 ? headers.indexOf('Birthdate') : 6;
+    const idIllness = headers.indexOf('Illness') > -1 ? headers.indexOf('Illness') : 7;
+    const idBeneficiary = headers.indexOf('Beneficiary') > -1 ? headers.indexOf('Beneficiary') : 8;
+    const idRelated = headers.indexOf('Related') > -1 ? headers.indexOf('Related') : 9;
 
     for (let i = 1; i < data.length; i++) {
         // Skip empty rows
-        if(String(data[i][0]).trim() === "") continue; 
+        if(String(data[i][idPerson]).trim() === "") continue; 
         
         members.push({
+            registerDate: idRegisterDate !== -1 && data[i][idRegisterDate] !== undefined ? data[i][idRegisterDate] : '',
+            personId: String(data[i][idPerson]).trim(),
             name: data[i][idName],
             surname: data[i][idSurname],
-            image: data[i][idImage]
+            address: data[i][idAddress],
+            phone: data[i][idPhone],
+            image: data[i][idImage],
+            birthdate: idBirthdate !== -1 && data[i][idBirthdate] !== undefined ? data[i][idBirthdate] : '',
+            illness: idIllness !== -1 && data[i][idIllness] !== undefined ? data[i][idIllness] : '',
+            beneficiary: idBeneficiary !== -1 && data[i][idBeneficiary] !== undefined ? data[i][idBeneficiary] : '',
+            related: idRelated !== -1 && data[i][idRelated] !== undefined ? data[i][idRelated] : ''
         });
     }
     return { success: true, members: members };
